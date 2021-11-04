@@ -1,17 +1,10 @@
 import re
 from django.urls import path, include
-from rest_framework import routers, generics
-from apps.store.views import StoreViewSet, CreateStoreViewSet, ListStoreViewSet
-
-
-router = routers.DefaultRouter()
-
-router.register(r'store/(?P<name>[^/.]+)', CreateStoreViewSet) #Url create
-router.register(r'stores', ListStoreViewSet) #Url list
-router.register(r'store', StoreViewSet) #Url get and delete
+from apps.store.views import StoreView, ListStore
 
 
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('stores', ListStore.as_view()),
+    path('store/<str:name>/', StoreView.as_view()),
 ]

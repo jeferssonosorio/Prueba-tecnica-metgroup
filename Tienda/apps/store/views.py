@@ -1,53 +1,39 @@
-from rest_framework import viewsets, status, mixins, generics
+from rest_framework import status, views
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from apps.store.models import Store
 from apps.store.serializers import StoreSerializer
 
 
-class StoreViewSet(viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.RetrieveModelMixin):
+class StoreView(views.APIView):
     """
-    A viewset that provides `retrieve()` and `destroy()` actions.
+    A views that provides `get()` `delete()` and `post()` actions.
     """
-    queryset = Store.objects.all().order_by('name')
-    serializer_class = StoreSerializer
-    lookup_field = "name"
+    def get(self, request, name=None):
+        store = get_object_or_404(Store, name=name)
+        serializer = StoreSerializer(store)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        self.perform_destroy(instance)
+    def delete(self, request, name=None):
+        store = get_object_or_404(Store, name=name)
+        store.delete()
+        return Response({"message": "store deleted"})
 
-        return Response({"message": "Store deleted"},
-                        status=status.HTTP_204_NO_CONTENT)
+    def post(self, request, name=None):
+        serializer = StoreSerializer(data={"name": name})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ListStoreViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class ListStore(views.APIView):
     """
-    A viewset that provides `list()` action.
+    A view that provides `list()` action.
     """
-    queryset = Store.objects.all().order_by('name')
-    serializer_class = StoreSerializer
+    def get(self, request):
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response({"stores": serializer.data})
-
-
-class CreateStoreViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
-    """
-    A viewset that provides `create()` action.
-    """
-    queryset = Store.objects.all().order_by('name')
-    serializer_class = StoreSerializer
-
-    def create(self, request, *args, **kwargs):
-        #delete 'store/' from URL
-        serializer = self.get_serializer(data={"name": request.path[7:-1]})
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
+        stores = Store.objects.all()
+        serializer = StoreSerializer(stores, many=True)
+        return Response({"stores": serializer.data}, status=status.HTTP_200_OK)
