@@ -19,8 +19,7 @@ Note the (env) in front of the prompt. This indicates that this terminal session
 The file requimiens.txt does not contain libraries necessary to connect to the DB.
 
 
-Once pip has finished downloading the dependencies:​
-21
+Once pip has finished downloading the dependencies:
 
 
 (env)$ cd project
